@@ -3,7 +3,34 @@ load("render.star", "render")
 load("time.star", "time")
 load("math.star", "math")
 load("encoding/base64.star", "base64")
-load("anyprogressbar.star", "prog_bar")
+load("schema.star", "schema")
+
+# number of items to render
+NUM_ITEMS = 1
+
+# display defaults and colors
+C_DISPLAY_WIDTH = 64
+C_ANIMATION_DELAY = 32
+C_BACKGROUND = [0, 0, 0]
+C_TEXT_COLOR = [255, 255, 255]
+
+# number of animation frames
+C_ANIMATION_FRAMES = 60
+C_ITEM_FRAMES = 15
+C_END_FRAMES = 15
+
+# configuration for infinite (no progress information) animation
+C_INFINITE_PROGRESS_PAD_FRAMES = 50
+C_INFINITE_PROGRESS_PAD_SCALE = 10.0
+C_INFINITE_PROGRESS_PAD_PIXELS = int(
+    C_INFINITE_PROGRESS_PAD_FRAMES / C_INFINITE_PROGRESS_PAD_SCALE
+)
+C_INFINITE_PROGRESS_FRAMES = C_INFINITE_PROGRESS_PAD_FRAMES * 2 - 2
+
+C_MIN_WIDTH = 2
+C_HEIGHT = 8
+C_PADDING = 0
+
 
 # Helltides Image
 BTC_ICON = base64.decode(
@@ -282,3 +309,59 @@ def main(config):
         return now
     else:
         return next
+
+def get_progress_items(config):
+    items = []
+    for i in range(1, NUM_ITEMS + 1):
+        label = config.get("label%d" % (i))
+        color = config.get("color%d" % (i))
+        progress = config.get("progress%d" % (i))
+        if label != None and label != "":
+            if color == None:
+                color = ""
+            if progress != None and progress != "":
+                progress = float(progress)
+                if progress < 0.0:
+                    progress = 0.0
+                elif progress > 100.0:
+                    progress = 100.0
+            else:
+                progress = None
+            items.append([label, color, progress])
+
+        # show up to 4 items, regardless of how many were configured
+        if len(items) >= 4:
+            break
+    return items
+
+
+def get_schema():
+    fields = []
+    for i in range(1, NUM_ITEMS + 1):
+        fields += [
+            schema.Text(
+                id="label%d" % (i),
+                name="Label %d" % (i),
+                desc="Label for item %d" % (i),
+                icon="gear",
+                default="",
+            ),
+            schema.Text(
+                id="progress%d" % (i),
+                name="Progress %d" % (i),
+                desc="Progress for item %d" % (i),
+                icon="gear",
+                default="",
+            ),
+            schema.Text(
+                id="color%d" % (i),
+                name="Color %d" % (i),
+                desc="Color for item %d" % (i),
+                icon="gear",
+                default="#ccc",
+            ),
+        ]
+    return schema.Schema(
+        version="1",
+        fields=fields,
+    )
