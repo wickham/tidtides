@@ -4,6 +4,7 @@ load("time.star", "time")
 load("math.star", "math")
 load("encoding/base64.star", "base64")
 load("schema.star", "schema")
+load("encoding/json.star", "json")
 
 # number of items to render
 NUM_ITEMS = 1
@@ -304,11 +305,16 @@ now = render.Root(
 
 
 def main(config):
-    print("\n\n\n\n[----- CONNECT TO PREVIEW AT http://localhost:8080/ -----]\n\n\n\n")
+    print("\n\n\n\n[----- CONNECT TO PREVIEW AT http://localhost:8080/ -----]\n\n")
+    print("---------------------------------------")
+    print(json.decode(config.get("location")).get("timezone"))
+    print(config.get("toggle1"))
+    print("---------------------------------------")
     if is_helltide_active():
         return now
     else:
         return next
+
 
 def get_progress_items(config):
     items = []
@@ -339,12 +345,18 @@ def get_schema():
     fields = []
     for i in range(1, NUM_ITEMS + 1):
         fields += [
-            schema.Text(
-                id="label%d" % (i),
-                name="Label %d" % (i),
+            schema.Toggle(
+                id="toggle%d" % (i),
+                name="Toggle %d" % (i),
                 desc="Label for item %d" % (i),
                 icon="gear",
-                default="",
+                default=False,
+            ),
+            schema.Location(
+                id="location",
+                name="Location",
+                desc="Location for which to display time.",
+                icon="locationDot",
             ),
             schema.Text(
                 id="progress%d" % (i),
@@ -353,12 +365,18 @@ def get_schema():
                 icon="gear",
                 default="",
             ),
-            schema.Text(
+            schema.Color(
                 id="color%d" % (i),
                 name="Color %d" % (i),
                 desc="Color for item %d" % (i),
-                icon="gear",
+                icon="brush",
                 default="#ccc",
+                palette=[
+                    "#7AB0FF",
+                    "#BFEDC4",
+                    "#78DECC",
+                    "#DBB5FF",
+                ],
             ),
         ]
     return schema.Schema(
